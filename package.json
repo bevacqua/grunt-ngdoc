@@ -1,0 +1,37 @@
+{
+  "name": "grunt-ngdoc",
+  "version": "0.0.1",
+  "description": "grunt plugin for angularjs documentation",
+  "main": "tasks",
+  "homepage": "https://github.com/bevacqua/grunt-ngdoc",
+  "author": {
+    "name": "Nicolas Bevacqua",
+    "email": "nicolasbevacqua@gmail.com",
+    "url": "http://www.ponyfoo.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bevacqua/grunt-ngdoc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bevacqua/grunt-ngdoc/issues"
+  },
+  "keywords": [
+    "gruntplugin",
+    "angular",
+    "grunt",
+    "ngdoc",
+    "ngdocs",
+    "documention"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "showdown": "0.3.1"
+  },
+  "peerDependencies": {
+    "grunt": "0.4.x"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1"
+  }
+}
