@@ -1,4 +1,4 @@
-var Showdown = require('showdown');
+var marked = require('marked');
 var DOM = require('./dom.js').DOM;
 var htmlEscape = require('./dom.js').htmlEscape;
 var Example = require('./example.js').Example;
@@ -212,8 +212,8 @@ Doc.prototype = {
                         '</a>';
                 });
         });
-        text = parts.join('');
-        text = new Showdown.converter({ extensions : ['table'] }).makeHtml(text);
+        text = parts.join('');console.log(text);
+        text = marked(text);console.log(text);
         text = text.replace(/(?:<p>)?(REPLACEME\d+)(?:<\/p>)?/g, function(_, id) {
             return placeholderMap[id];
         });
