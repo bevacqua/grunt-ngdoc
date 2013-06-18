@@ -318,7 +318,9 @@ Doc.prototype = {
         var branch = self.options.improve.branch || 'master',
             href = 'https://github.com/' + self.options.improve.repo + '/edit/' + branch + '/' + self.file;
 
-        dom.tag('a', {href: href, class: 'improve-docs btn btn-primary'}, 'Improve this doc');
+        dom.tag('div', { 'class': 'improve-docs' }, function() {
+          dom.tag('a', {href: href, class: 'improve-docs-btn btn btn-primary'}, 'Improve this doc');
+        });
       }
 
       if (self.ngdoc != 'overview') {
