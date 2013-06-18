@@ -32,7 +32,7 @@ ngdoc: {
     scripts: ['../app.min.js'],
     html5Mode: true,
     startPage: '/api',
-    title: "My Awesome Docs",
+    title: 'My Documentation',
     analytics: {
           account: 'UA-08150815-0',
           domainName: 'my-domain.com'
