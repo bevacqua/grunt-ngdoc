@@ -71,31 +71,21 @@ DOM.prototype = {
     this.tag('div', attr, text);
   },
 
-  h: function(heading, content, fn){
+  h: function(heading, className, content, fn){
     if (content==undefined || (content instanceof Array && content.length == 0)) return;
+
+    var attr = className ? { 'class': className } : undefined;
+
     this.headingDepth++;
-    var className = null,
-        anchor = null;
-    if (typeof heading == 'string') {
-      var id = heading.
-          replace(/\(.*\)/mg, '').
-          replace(/[^\d\w\$]/mg, '.').
-          replace(/-+/gm, '-').
-          replace(/-*$/gm, '');
-      anchor = {'id': id};
-      var classNameValue = id.toLowerCase().replace(/[._]/mg, '-');
-      if(classNameValue == 'hide') classNameValue = '';
-      className = {'class': classNameValue};
-    }
-    this.tag('h' + this.headingDepth, anchor, heading);
+    this.tag('h' + this.headingDepth, attr, heading);
     if (content instanceof Array) {
-      this.ul(content, className, fn);
+      this.ul(content, fn);
     } else if (fn) {
-      this.tag('div', className, function() {
+      this.tag('div', function() {
         fn.call(this, content);
       });
     } else {
-      this.tag('div', className, content);
+      this.tag('div', content);
     }
     this.headingDepth--;
   },

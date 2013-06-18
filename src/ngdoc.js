@@ -310,7 +310,7 @@ Doc.prototype = {
         var dom = new DOM(),
             self = this;
 
-        dom.h(title(this.name, this.ngdoc == 'overview'), function() {
+        dom.h(title(this.name, this.ngdoc == 'overview'), 'doc-title', function() {
 
             notice('deprecated', 'Deprecated API', self.deprecated);
 
@@ -324,9 +324,9 @@ Doc.prototype = {
             }
 
             if (self.ngdoc != 'overview') {
-                dom.h('Description', self.description, dom.html);
+                dom.h('Description', 'doc-description', self.description, dom.html);
             }
-            dom.h('Dependencies', self.requires, function(require){
+            dom.h('Dependencies', 'doc-dependencies', self.requires, function(require){
                 dom.tag('code', function() {
                     dom.tag('a', {href: 'api/ng.' + require.name}, require.name);
                 });
@@ -337,7 +337,7 @@ Doc.prototype = {
                 throw new Error("Don't know how to format @ngdoc: " + self.ngdoc);
             }).call(self, dom);
 
-            dom.h('Example', self.example, dom.html);
+            dom.h('Example', 'doc-example', self.example, dom.html);
         });
 
         return dom.toString();
@@ -355,7 +355,7 @@ Doc.prototype = {
     },
 
     html_usage_parameters: function(dom) {
-        dom.h('Parameters', this.param, function(param){
+        dom.h('Parameters', 'doc-params', this.param, function(param){
             dom.tag('code', function() {
                 dom.text(param.name);
                 if (param.optional) {
@@ -377,7 +377,7 @@ Doc.prototype = {
             dom.html(param.description);
         });
         if(this.animations) {
-            dom.h('Animations', this.animations, function(animations){
+            dom.h('Animations', 'doc-animations', this.animations, function(animations){
                 dom.html('<ul>');
                 var animations = animations.split("\n");
                 animations.forEach(function(ani) {
@@ -393,7 +393,7 @@ Doc.prototype = {
     html_usage_returns: function(dom) {
         var self = this;
         if (self.returns) {
-            dom.h('Returns', function() {
+            dom.h('Returns', 'doc-return', function() {
                 dom.tag('code', '{' + self.returns.type + '}');
                 dom.text('– ');
                 dom.html(self.returns.description);
@@ -406,7 +406,7 @@ Doc.prototype = {
         if (self['this']) {
             dom.h(function(dom){
                 dom.html("Method's <code>this</code>");
-            }, function(dom){
+            }, 'doc-this', function(dom){
                 dom.html(self['this']);
             });
         }
@@ -416,7 +416,7 @@ Doc.prototype = {
         var self = this;
         var name = self.name.match(/^angular(\.mock)?\.(\w+)$/) ? self.name : self.name.split(/\./).pop()
 
-        dom.h('Usage', function() {
+        dom.h('Usage', 'doc-fn', function() {
             dom.code(function() {
                 dom.text(name);
                 dom.text('(');
@@ -433,7 +433,7 @@ Doc.prototype = {
 
     html_usage_property: function(dom){
         var self = this;
-        dom.h('Usage', function() {
+        dom.h('Usage', 'doc-prop', function() {
             dom.code(function() {
                 dom.text(self.name);
             });
@@ -444,7 +444,7 @@ Doc.prototype = {
 
     html_usage_directive: function(dom){
         var self = this;
-        dom.h('Usage', function() {
+        dom.h('Usage', 'doc-directive', function() {
             var restrict = self.restrict || 'AC';
 
             /*if (restrict.match(/E/)) {
@@ -568,8 +568,8 @@ Doc.prototype = {
 
     html_usage_filter: function(dom){
         var self = this;
-        dom.h('Usage', function() {
-            dom.h('In HTML Template Binding', function() {
+        dom.h('Usage', 'doc-filter', function() {
+            dom.h('In HTML Template Binding', 'doc-filter-html', function() {
                 dom.tag('code', function() {
                     if (self.usage) {
                         dom.text(self.usage);
@@ -584,7 +584,7 @@ Doc.prototype = {
                 });
             });
 
-            dom.h('In JavaScript', function() {
+            dom.h('In JavaScript', 'doc-filter-js', function() {
                 dom.tag('code', function() {
                     dom.text('$filter(\'');
                     dom.text(self.shortName);
@@ -602,7 +602,7 @@ Doc.prototype = {
 
     html_usage_inputType: function(dom){
         var self = this;
-        dom.h('Usage', function() {
+        dom.h('Usage', 'doc-input', function() {
             dom.code(function() {
                 dom.text('<input type="' + self.shortName + '"');
                 (self.param||[]).forEach(function(param){
@@ -631,7 +631,7 @@ Doc.prototype = {
         }
 
         if (list.length) {
-            dom.h('Directive info', function() {
+            dom.h('Directive info', 'doc-directive-info', function() {
                 dom.ul(list);
             });
         }
@@ -645,7 +645,7 @@ Doc.prototype = {
         var self = this;
 
         if (this.param.length) {
-            dom.h('Usage', function() {
+            dom.h('Usage', 'doc-interface', function() {
                 dom.code(function() {
                     dom.text(self.name.split('.').pop());
                     dom.text('(');
@@ -673,54 +673,54 @@ Doc.prototype = {
         var self = this;
         if (self.methods.length) {
             dom.div({class:'member method'}, function(){
-                dom.h('Methods', self.methods, function(method){
+                dom.h('Methods', 'doc-methods', self.methods, function(method){
                     var signature = (method.param || []).map(property('name'));
-                    dom.h(method.shortName + '(' + signature.join(', ') + ')', method, function() {
+                    dom.h(method.shortName + '(' + signature.join(', ') + ')', 'doc-method', method, function() {
                         dom.html(method.description);
                         method.html_usage_parameters(dom);
                         self.html_usage_this(dom);
                         method.html_usage_returns(dom);
 
-                        dom.h('Example', method.example, dom.html);
+                        dom.h('Example', 'doc-example', method.example, dom.html);
                     });
                 });
             });
         }
         if (self.properties.length) {
             dom.div({class:'member property'}, function(){
-                dom.h('Properties', self.properties, function(property){
+                dom.h('Properties', 'doc-properties', self.properties, function(property){
                     dom.h(property.shortName, function() {
                         dom.html(property.description);
                         if (!property.html_usage_returns) {
                             console.log(property);
                         }
                         property.html_usage_returns(dom);
-                        dom.h('Example', property.example, dom.html);
+                        dom.h('Example', 'doc-example', property.example, dom.html);
                     });
                 });
             });
         }
         if (self.events.length) {
             dom.div({class:'member event'}, function(){
-                dom.h('Events', self.events, function(event){
-                    dom.h(event.shortName, event, function() {
+                dom.h('Events', 'doc-events', self.events, function(event){
+                    dom.h(event.shortName, 'doc-event', event, function() {
                         dom.html(event.description);
                         if (event.type == 'listen') {
                             dom.tag('div', {class:'inline'}, function() {
-                                dom.h('Listen on:', event.target);
+                                dom.h('Listen on:', 'doc-event-listener', event.target);
                             });
                         } else {
                             dom.tag('div', {class:'inline'}, function() {
-                                dom.h('Type:', event.type);
+                                dom.h('Type:', 'doc-event-type', event.type);
                             });
                             dom.tag('div', {class:'inline'}, function() {
-                                dom.h('Target:', event.target);
+                                dom.h('Target:', 'doc-event-target', event.target);
                             });
                         }
                         event.html_usage_parameters(dom);
                         self.html_usage_this(dom);
 
-                        dom.h('Example', event.example, dom.html);
+                        dom.h('Example', 'doc-example', event.example, dom.html);
                     });
                 });
             });
