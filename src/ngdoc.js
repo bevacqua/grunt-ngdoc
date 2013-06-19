@@ -1,4 +1,4 @@
-var marked = require('marked');
+var marked = require('ultramarked');
 var DOM = require('./dom.js').DOM;
 var htmlEscape = require('./dom.js').htmlEscape;
 var Example = require('./example.js').Example;
@@ -12,6 +12,12 @@ exports.metadata = metadata;
 exports.scenarios = scenarios;
 exports.merge = merge;
 exports.Doc = Doc;
+
+marked.setOptions({
+    breaks: true,
+    smartLists: true,
+    ultralight: true
+});
 
 var BOOLEAN_ATTR = {};
 ['multiple', 'selected', 'checked', 'disabled', 'readOnly', 'required'].forEach(function(value) {
@@ -212,8 +218,8 @@ Doc.prototype = {
                         '</a>';
                 });
         });
-        text = parts.join('');console.log(text);
-        text = marked(text);console.log(text);
+        text = parts.join('');
+        text = marked(text);
         text = text.replace(/(?:<p>)?(REPLACEME\d+)(?:<\/p>)?/g, function(_, id) {
             return placeholderMap[id];
         });
