@@ -16,10 +16,12 @@ exports.Doc = Doc;
 marked.setOptions({
     breaks: true,
     smartLists: true,
-    ultralight: true
+    ultralight: true,
+    ultrasanitize: true
 });
 
 var BOOLEAN_ATTR = {};
+
 ['multiple', 'selected', 'checked', 'disabled', 'readOnly', 'required'].forEach(function(value) {
     BOOLEAN_ATTR[value] = true;
 });
