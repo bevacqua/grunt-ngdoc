@@ -53,9 +53,9 @@ Doc.METADATA_IGNORE = (function() {
 
 Doc.prototype = {
     keywords: function keywords() {
-        var keywords = {};
+        var ignored = {};
         var words = [];
-        Doc.METADATA_IGNORE.forEach(function(ignore){ keywords[ignore] = true; });
+        Doc.METADATA_IGNORE.forEach(function(ignore){ ignored[ignore] = true; });
 
         function extractWords(text) {
             var tokens = text.toLowerCase().split(/[\.\s,`'"#]+/mg);
@@ -63,8 +63,8 @@ Doc.prototype = {
                 var match = key.match(/^((ng:|[\$_a-z])[\w\-_]+)/);
                 if (match){
                     key = match[1];
-                    if (!keywords[key]) {
-                        keywords[key] = true;
+                    if(!ignored[key]) {
+                        ignored[key] = true;
                         words.push(key);
                     }
                 }

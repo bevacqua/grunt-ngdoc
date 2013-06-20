@@ -1,78 +1,44 @@
-var reader = require('../src/reader.js'),
+var readerFactory = require('../src/reader.js'),
     ngdoc = require('../src/ngdoc.js'),
-    path = require('path'),
-    vm = require('vm');
+    path = require('path');
 
-module.exports = function(grunt) {
-  var _ = grunt.util._,
-      templates = path.resolve(__dirname, '../src/templates');
+module.exports = function(grunt){
+  var _ = grunt.util._;
 
-  grunt.registerMultiTask('ngdoc', 'build documentation', function() {
+  grunt.registerTask('ngdoc', 'build documentation', function() {
     var start = now(),
         done = this.async(),
         options = this.options({
           dest: 'docs/',
           startPage: '/api',
-          scripts: ['angular.js'],
-          styles: [],
-          title: grunt.config('pkg') ?
-            (grunt.config('pkg').title || grunt.config('pkg').name) :
-            '',
-          html5Mode: true,
-          animation: false
+          title: '',
+          html5Mode: true
         }),
-        section = this.target === 'all' ? 'api' : this.target,
-        setup;
-
-    //Copy the scripts into their own folder in docs, unless they are remote or default angular.js
-    var gruntScriptsFolder = 'grunt-scripts';
-    options.scripts = _.map(options.scripts, function(file) {
-      if (file === 'angular.js') {
-        options.animation = true;
-        return 'js/angular.min.js';
-      }
-
-      if (!options.animation) {
-        //force animation in new angular versions from CDN or copied from a folder like angular-1.x.x/
-        var match = file.match(/1\.(\d\.\d+)\/angular\./);
-        if (match && parseInt(match[1], 10) > 1.4) { options.animation = true; }
-      }
-
-      if (/^((https?:)?\/\/|\.\.\/)/.test(file)) {
-        return file;
-      } else {
-        var filename = file.split('/').pop();
-        //Use path.join here because we aren't sure if options.dest has / or not
-        grunt.file.copy(file, path.join(options.dest, gruntScriptsFolder, filename));
-
-        //Return the script path: doesn't have options.dest in it, it's relative
-        //to the docs folder itself
-        return gruntScriptsFolder + '/' + filename;
-      }
-    });
-
-    options.styles = _.map(options.styles, function(file) {
-      if (/^((https?:)?\/\/|\.\.\/)/.test(file)) {
-        return file;
-      } else {
-        var filename = file.split('/').pop();
-        grunt.file.copy(file, path.join(options.dest, 'css', filename));
-        return 'css/' + filename;
-      }
-    });
-
-    setup = prepareSetup(section, options);
+        setup = prepareSetup(options), docs = [];
 
     grunt.log.writeln('Generating Documentation...');
 
-    reader.docs = [];
-    this.files.forEach(function(f) {
-      setup.sections[section] = f.title || 'API Documentation';
-      setup.apis[section] = f.api || section == 'api';
-      f.src.filter(exists).forEach(function(filepath) {
-        var content = grunt.file.read(filepath);
-        reader.process(content, filepath, section, options);
-      });
+    var key, sections = options.sections, sectionDocuments;
+    for(key in sections){
+      sectionDocuments = generateSection(setup, key, sections[key], options);
+      docs = docs.concat(sectionDocuments);
+    }
+
+    writeSitemap(options.dest, options.host, docs);
+    writeDocIndex(setup);
+
+    grunt.log.writeln('DONE. Generated ' + docs.length + ' pages in ' + (now()-start) + 'ms.');
+    done();
+  });
+
+  function generateSection(setup, key, section, options){
+    var reader = readerFactory();
+
+    setup.sections[key] = section.title || 'API Documentation';
+    setup.apis[key] = section.api || section == 'api';
+    grunt.file.expand(section.src).filter(exists).forEach(function(filepath) {
+      var content = grunt.file.read(filepath);
+      reader.process(content, filepath, key, options);
     });
 
     ngdoc.merge(reader.docs);
@@ -87,15 +53,11 @@ module.exports = function(grunt) {
 
     setup.pages = _.union(setup.pages, ngdoc.metadata(reader.docs));
 
-    writeSitemap(options.dest, options.host, reader.docs);
-    writeSetup(setup);
-
-    grunt.log.writeln('DONE. Generated ' + reader.docs.length + ' pages in ' + (now()-start) + 'ms.');
-    done();
-  });
+    return reader.docs;
+  }
 
   function writeSitemap(dest, host, docs){
-    var urls = reader.docs.map(function(doc){
+    var urls = docs.map(function(doc){
       if(doc.id === 'index'){
         return '/' + doc.section;
       }else{
@@ -107,7 +69,7 @@ module.exports = function(grunt) {
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
     ];
-    urls.forEach(function(url){
+    urls.sort().forEach(function(url){
       var freq = 'daily', priority = 1, page = [
         '<loc>' + host + url + '</loc>',
         '<changefreq>' + freq + '</changefreq>',
@@ -119,56 +81,25 @@ module.exports = function(grunt) {
     grunt.file.write(dest + '/sitemap.xml', sitemap.join('\n'));
   }
 
-  function prepareSetup(section, options) {
-    var setup, data, context = {},
-        file = path.resolve(options.dest, 'pages.js');
-    if (exists(file)) {
-      // read setup from file
-      data = grunt.file.read(file),
-      vm.runInNewContext(data, context, file);
-      setup = context.NG_DOCS;
-      // keep only pages from other build tasks
-      setup.pages = _.filter(setup.pages, function(p) {return p.section !== section;});
-    } else {
-      // build clean dest
-      setup = {sections: {}, pages: [], apis: {}};
-      copyTemplates(options.dest);
-    }
+  function prepareSetup(options) {
+    var setup, file = path.resolve(options.dest, 'pages.js');
+
+    setup = { sections: {}, pages: [], apis: {} };
     setup.__file = file;
     setup.__options = options;
     return setup;
   }
 
-  function writeSetup(setup) {
-    var options = setup.__options,
-        data = {
-          scripts: options.scripts,
-          styles: options.styles,
-          sections: _.keys(setup.sections).join('|'),
-          discussions: options.discussions,
-          analytics: options.analytics,
-          title: options.title
-        };
+  function writeDocIndex(setup) {
+    var options = setup.__options;
 
     // create setup file
+    setup.title = options.title;
     setup.html5Mode = options.html5Mode;
     setup.startPage = options.startPage;
     setup.discussions = options.discussions;
-    setup.scripts = _.map(options.scripts, function(url) { return path.basename(url); });
+
     grunt.file.write(setup.__file, 'NG_DOCS=' + JSON.stringify(setup, replacer, 2) + ';');
-  }
-
-
-  function copyTemplates(dest) {
-    grunt.file.expandMapping(['**/*', '!**/*.tmpl'], dest, {cwd: templates}).forEach(function(f) {
-      var src = f.src[0],
-          dest = f.dest;
-      if (grunt.file.isDir(src)) {
-          grunt.file.mkdir(dest);
-        } else {
-          grunt.file.copy(src, dest);
-        }
-    });
   }
 
   function exists(filepath) {
@@ -183,5 +114,4 @@ module.exports = function(grunt) {
   }
 
   function now() { return new Date().getTime(); }
-
- };
+};
