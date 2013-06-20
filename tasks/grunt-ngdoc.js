@@ -81,22 +81,43 @@ module.exports = function(grunt) {
       // this hack is here because on OSX angular.module and angular.Module map to the same file.
       var id = doc.id.replace('angular.Module', 'angular.IModule').replace(':', '.'),
           file = path.resolve(options.dest, 'partials', doc.section, id + '.html');
+
       grunt.file.write(file, doc.html());
     });
 
     setup.pages = _.union(setup.pages, ngdoc.metadata(reader.docs));
 
-    if (options.navTemplate) {
-      options.navContent = grunt.file.read(options.navTemplate);
-    } else {
-      options.navContent = '';
-    }
-
+    writeSitemap(options.dest, options.host, reader.docs);
     writeSetup(setup);
 
     grunt.log.writeln('DONE. Generated ' + reader.docs.length + ' pages in ' + (now()-start) + 'ms.');
     done();
   });
+
+  function writeSitemap(dest, host, docs){
+    var urls = reader.docs.map(function(doc){
+      if(doc.id === 'index'){
+        return '/' + doc.section;
+      }else{
+        return '/' + doc.section + '/' + doc.id;
+      }
+    });
+
+    var sitemap = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    ];
+    urls.forEach(function(url){
+      var freq = 'daily', priority = 1, page = [
+        '<loc>' + host + url + '</loc>',
+        '<changefreq>' + freq + '</changefreq>',
+        '<priority>' + priority + '</priority>'
+      ];
+      sitemap.push('<url> ' + page.join(' ') + ' </url>');
+    });
+    sitemap.push('</urlset>');
+    grunt.file.write(dest + '/sitemap.xml', sitemap.join('\n'));
+  }
 
   function prepareSetup(section, options) {
     var setup, data, context = {},
@@ -126,7 +147,6 @@ module.exports = function(grunt) {
           sections: _.keys(setup.sections).join('|'),
           discussions: options.discussions,
           analytics: options.analytics,
-          navContent: options.navContent,
           title: options.title
         };
 
