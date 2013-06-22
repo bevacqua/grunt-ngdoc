@@ -1,6 +1,6 @@
 {
   "name": "grunt-ngdoc",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "grunt plugin for angularjs documentation",
   "main": "tasks",
   "homepage": "https://github.com/bevacqua/grunt-ngdoc",
@@ -26,7 +26,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "ultramarked": "0.5.2"
+    "ultramarked": "0.5.4"
   },
   "peerDependencies": {
     "grunt": "0.4.x"
