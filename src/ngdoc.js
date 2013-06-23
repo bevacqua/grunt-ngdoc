@@ -14,7 +14,6 @@ exports.merge = merge;
 exports.Doc = Doc;
 
 marked.setOptions({
-    breaks: true,
     smartLists: true,
     ultralight: true,
     ultrasanitize: true
