@@ -28,7 +28,7 @@ And with all options:
 ```js
 ngdoc: {
   options: {
-    dest: 'docs'
+    dest: 'docs',
     scripts: ['../app.min.js'],
     html5Mode: true,
     startPage: '/api',
